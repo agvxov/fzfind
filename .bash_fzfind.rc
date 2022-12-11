@@ -1,6 +1,8 @@
 #!/bin/bash
-CTRLFMODE="path"
-CTRLCACHE="/home/anon/Desktop/"
+[ -z "$CTRLFMODE" ] && CTRLFMODE="path"
+[ -z "$CTRLFMETHOD" ] && CTRLFMETHOD="find"
+#CTRLCACHE="/home/anon/Desktop/"
+
 function ctrl_f_mode(){
 	read -n 1 M
 	case $M in
@@ -14,8 +16,8 @@ function ctrl_f_mode(){
 	env echo -e "\033[1mctrl-f mode: \"\033[0m${CTRLFMODE}\""
 }
 function echo_readline_line(){
-	PS1_CLEANED=${PS1//\\\[/}
-	PS1_CLEANED=${PS1_CLEANED//\\\]/}
+	PS1_CLEANED="${PS1//\\\[/}"
+	PS1_CLEANED="${PS1_CLEANED//\\\]/}"
 	env echo -e "${PS1_CLEANED}${1:0:${2}}\033[45m \033[0m${1:${2}}"
 	#env echo -e "${PS1}${1:0:${2}}\033[45m \033[0m${1:${2}}"
 }
@@ -23,23 +25,25 @@ function ctrl_f(){
 	# Show command and substitution position
 		echo_readline_line "${READLINE_LINE}" "${READLINE_POINT}"
 	# Get narrowing substring
-		PX=""
-		PX=$(lastWord "${READLINE_LINE:0:${READLINE_POINT}}")
-		PXL=${#PX}
-		PX="$(echo $PX)"
+		OPX=""
+		if [ "${READLINE_LINE:$(expr $READLINE_POINT - 1):1}" != " " ]; then
+			OPX=$(lastWord "${READLINE_LINE:0:${READLINE_POINT}}")
+		fi
 		#echo "'$PX'"
 	# Decide possible completions and use fzf for selection
 		case $CTRLFMODE in
 			"path")
-				if [ "$PX" != "" ]; then
-					STR=$(find "$PX" 2> /dev/null | fzf --multi=1)
+				if [ $CTRLFMETHOD == "find" ]; then
+					PX="$OPX"
+					STR=$(eval find ./"$PX/" 2> /dev/null | fzf --multi=1)
+				elif [ $CTRLFMETHOD == "locate" ]; then
+					PX="$(realpath  $PWD/$OPX)"
+					STR=$(eval locate --existing --regex $PX/'.*' 2> /dev/null | fzf --multi=1)
 				else
-					STR=$(find 2> /dev/null | fzf --multi=1)
+					echo -e "\033[31;1mNonsensical \033[34;1m\${CTRLFMETHOD} \033[31;1mvalue.\033[0m"
 				fi
 				;;
 			"opt")
-				echo "Not implemented."
-				return
 				#get command
 				#check catche
 				#parse
@@ -67,15 +71,15 @@ function ctrl_f(){
 				;;
 		esac
 	# Remove ${PX}
-		STR="${STR:${#PX}}"
+		STR="${STR/${PX}/}"
 	# Write $READLINE_LINE
 		[ -z "$STR" ] && return
-		if [ "$CTRLFMODE" == "path" ]; then	# if paths -> quote
-			READLINE_LINE="${READLINE_LINE:0:$(expr ${READLINE_POINT} - ${PXL})}\"${PX}${STR}\"${READLINE_LINE:${READLINE_POINT}}"	# start_til_px + '"' + px + str '"' + rest
-			READLINE_POINT=$(expr ${READLINE_POINT} + ${#PX} + ${#STR} + 2)	# +2 for the '"'s
+		if [ "$CTRLFMODE" == "path" ]; then	# quote paths
+			READLINE_LINE="${READLINE_LINE:0:$(expr ${READLINE_POINT} - ${#OPX})}\"${OPX}${STR}\"${READLINE_LINE:${READLINE_POINT}}"	# start_til_px + '"' + px + str '"' + rest
+			READLINE_POINT=$(expr ${READLINE_POINT} + ${#OPX} + ${#STR} + 2)	# +2 for the '"'s
 		else
-			READLINE_LINE="${READLINE_LINE:0:$(expr ${READLINE_POINT} - ${PXL})}${PX}${STR}${READLINE_LINE:${READLINE_POINT}}"	# start_til_px + px + str + rest
-			READLINE_POINT=$(expr ${READLINE_POINT} + ${#PX} + ${#STR})
+			READLINE_LINE="${READLINE_LINE:0:$(expr ${READLINE_POINT} - ${#OPX})}${OPX}${STR}${READLINE_LINE:${READLINE_POINT}}"	# start_til_px + px + str + rest
+			READLINE_POINT=$(expr ${READLINE_POINT} + ${#OPX} + ${#STR})
 		fi
 }
 
