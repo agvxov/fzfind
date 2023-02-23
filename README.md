@@ -1,6 +1,8 @@
 # fzfind #
 fzf based file fuzzy finder for Bash
 
+![](showoff.gif)
+
 ### Dependencies ###
 	+ GNU coreutils
 	+ fzf
