@@ -1,4 +1,15 @@
 #!/bin/bash
+#
+# Plugin: fzfing
+# Description: fzf based file fuzzy finder for Bash
+# Author: Anon
+# Date: 2024
+# Version: 1.0
+# Source:
+#   mirror 1: http://bis64wqhh3louusbd45iyj76kmn4rzw5ysawyan5bkxwyzihj67c5lid.onion/anon/fzfind
+#   mirror 2: https://github.com/agvxov/fzfind
+
+
 [ -z "$CTRLFMODE" ] && CTRLFMODE="path"
 [ -z "$CTRLFMETHOD" ] && CTRLFMETHOD="find"
 #CTRLCACHE="/home/anon/Desktop/"
