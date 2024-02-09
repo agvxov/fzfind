@@ -16,7 +16,7 @@
 function echo_readline_line(){
 	PS1_CLEANED="${PS1//\\\[/}"
 	PS1_CLEANED="${PS1_CLEANED//\\\]/}"
-	env echo -e "${PS1_CLEANED}${1:0:${2}}\033[45m \033[0m${1:${2}}"
+	eval "env echo -e \"${PS1_CLEANED}${1:0:${2}}\033[45m \033[0m${1:${2}}\""
 	#env echo -e "${PS1}${1:0:${2}}\033[45m \033[0m${1:${2}}"
 }
 function ctrl_f(){
